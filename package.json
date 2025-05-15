@@ -7,7 +7,8 @@
   "type": "commonjs",
   "main": "index.jsx",
   "scripts": {
-    "test": "vite"
+    "test": "vite",
+    "mobile": "vite --host"
   },
   "devDependencies": {
     "sass": "^1.87.0",
@@ -17,7 +18,6 @@
     "bootstrap": "^5.3.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-sortablejs": "^6.1.4",
     "sortablejs": "^1.15.6"
   }
 }

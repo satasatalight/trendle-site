@@ -1,2 +1,38 @@
 // Import all of Bootstrap's CSS
 @import "bootstrap/scss/bootstrap";
+
+.correct{
+    animation-duration: 1.5s;
+    animation-fill-mode: forwards;
+    animation-name: fadeCorrect;
+}
+
+@keyframes fadeCorrect {
+    from {
+        background-color: white;
+    }
+
+    to {
+        background-color: green;
+    }
+}
+
+.wrong{
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-name: fadeWrong;
+}
+
+@keyframes fadeWrong {
+    from {
+        background-color: white;
+    }
+
+    50% {
+        background-color: red;
+    }
+
+    to {
+        background-color: white;
+    }
+}
