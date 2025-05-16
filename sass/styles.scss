@@ -2,37 +2,53 @@
 @import "bootstrap/scss/bootstrap";
 
 .correct{
-    animation-duration: 1.5s;
+    animation-duration: 0.5s;
     animation-fill-mode: forwards;
     animation-name: fadeCorrect;
 }
 
 @keyframes fadeCorrect {
     from {
-        background-color: white;
+        border-color: var(--bs-list-group-border-color);
+        background-color: var(--bs-list-group-bg);
     }
 
     to {
-        background-color: green;
+        border-color: var(--bs-form-valid-border-color);
+        background-color: var(--bs-success-border-subtle);
     }
 }
 
 .wrong{
-    animation-duration: 1s;
-    animation-fill-mode: forwards;
-    animation-name: fadeWrong;
+    animation: 0.75s forwards fadeWrong, 0.5s forwards horizontalShaking;
 }
 
 @keyframes fadeWrong {
     from {
-        background-color: white;
+        border-color: var(--bs-list-group-border-color);
+        background-color: var(--bs-list-group-bg);
     }
 
-    50% {
-        background-color: red;
+    25% {
+        border-color: red;
+        background-color: lightcoral;
     }
 
     to {
-        background-color: white;
+        border-color: var(--bs-list-group-border-color);
+        background-color: var(--bs-list-group-bg);
     }
+}
+
+@keyframes horizontalShaking {
+    0% { transform: translateX(0) }
+    25% { transform: translateX(5px) }
+    50% { transform: translateX(-5px) }
+    75% { transform: translateX(5px) }
+    100% { transform: translateX(0) }
+}
+
+.hover {
+    border-color: var(--bs-primary-border-subtle);
+    background-color: var(--bs-primary-bg-subtle);
 }

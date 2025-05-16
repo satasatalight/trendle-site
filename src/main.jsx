@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { Sortable, Swap } from "sortablejs";
+import confetti from "canvas-confetti";
 import '../sass/styles.scss';
 
 // mount swap plugin
@@ -11,8 +12,8 @@ let root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<Main/>);
 
 function Main(){
-    let sortableElement = useRef(null);
     let trendData = useRef(null);
+    let sortableRef = useRef(null);
     let [displayData, setDisplayData] = useState(null);
     let [curWeek, setCurWeek] = useState({start: null, end: null});
     let [updateTime, setUpdateTime] = useState(new Date());
@@ -20,15 +21,17 @@ function Main(){
     // init
     useEffect(() => {
         // setup sortable + swap plugin
-        Sortable.create(sortableElement.current, {
+        Sortable.create(sortableRef.current, {
             swap: true,
             animation: 150,
-            onUpdate: (evt) => {onListUpdate(evt, setDisplayData)}
+            onUpdate: (evt) => {onListUpdate(evt, setDisplayData)},
+            ghostClass: "hover"
         });
 
         // fetch from server
-        getData().then((response) =>{
+        getData().then((response) => {
             console.log("Got data from: " + response.updateTime);
+            console.log(response);
 
             trendData.current = response.data;
             setDisplayData(shuffle(JSON.parse(JSON.stringify(response.data))));
@@ -38,8 +41,33 @@ function Main(){
 
     }, [setCurWeek, setUpdateTime, setDisplayData]);
 
+    // check completion
+    function submit(){
+        let allRight = true;
+
+        for(let i = 0; i < displayData.length; i++){
+            if(displayData[i].value == trendData.current[i].value){
+                // correct
+                displayData[i].editClassSuffix("disabled correct");
+                continue;
+            }
+            // wrong
+            displayData[i].editClassSuffix("wrong");
+            allRight = false;
+        }
+
+        if(allRight) win();
+    }
+
+    // win
+    function win(){
+        displayData.forEach((element) => 
+            element.editSubtitle(element.formattedValue));
+        confetti();
+    }
+
     // main jsx
-    return <div className="container mx-auto p-5 fs-5" style={{width: 780}}>
+    return <div className="container mx-auto px-5 pt-4 fs-5" style={{width: 780}}>
         <h1 className="row">
             <p className="text-start col">Trendle!</p>
             <p className="text-end col">{dateToString(updateTime)}</p>
@@ -48,17 +76,19 @@ function Main(){
 
         Rank the following trending Google Search queries in order of largest increase in search volume (top) to smallest increase in search volume (bottom).<br/>
 
-        <div className="my-4 alert alert-primary">
+        <p className="my-4 alert alert-primary">
             Today's search data is from the week of: <b>{dateToString(curWeek.start)}</b> to <b>{dateToString(curWeek.end)}</b>.
-        </div>
+        </p>
 
-        <ul ref={sortableElement} className="list-group">
+        <p className="fw-light fst-italic">Most trending searches</p>
+        <ul ref={sortableRef} className="list-group">
             <List data={displayData}/>
         </ul>
+        <p className="fw-light fst-italic pt-2">Least trending searches</p>
 
-        <div className="my-4">
-            <button type="button" onClick={() => submit(displayData, trendData)} className="btn btn-primary me-2">
-                Submit
+        <div className="m-4">
+            <button type="button" onClick={() => submit()} className="btn btn-primary me-2 w-100 fs-4 py-2">
+                Submit!
             </button>
         </div>
     </div>;
@@ -71,11 +101,18 @@ function List({data}){
     
     return <>
         {data.map((query) =>{
+            // create dynamic elements
             let [classSuffix, editClassSuffix] = useState("");
-            query.editClassSuffix = editClassSuffix;
+            let [subtitle, editSubtitle] = useState("");
 
-            return <li key={query.value.toString()} className={`list-group-item py-4 rounded ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
-                    {query.name}
+            // attach dynamic edit function to object
+            query.editClassSuffix = editClassSuffix;
+            query.editSubtitle = editSubtitle;
+
+            // return list object
+            return <li key={query.value.toString()} className={`list-group-item pt-3 pb-1 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
+                    {query.name}<br/>
+                    <p className="fw-light fst-italic">{subtitle}</p>
             </li>
         }
     )}</>
@@ -94,21 +131,6 @@ function onListUpdate(evt, setArray){
 
         return array;
     });
-}
-
-// check completion
-function submit(submission, solution){
-    for(let i = 0; i < submission.length; i++){
-        if(submission[i].name == solution.current[i].name){
-            // correct
-            console.log(`CORRECT: "${submission[i].name}" is equal to "${solution.current[i].name}" at index ${i}`);
-            submission[i].editClassSuffix("disabled correct");
-            continue;
-        }
-        // wrong
-        console.log(`WRONG: "${submission[i].name}" is not equal to "${solution.current[i].name}" at index ${i}`);
-        submission[i].editClassSuffix("wrong");
-    }
 }
 
 // shuffle inital array
@@ -134,7 +156,7 @@ async function getData() {
     let response;
 
     try {
-        response = await fetch("https://trendle-server.vercel.app/api/getWeekData");
+        response = await fetch("http://localhost:3000/api/getWeekData");
 
         if (!response) {
             console.error("trendle-server not working, trying again:");
