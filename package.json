@@ -8,7 +8,9 @@
   "main": "index.jsx",
   "scripts": {
     "test": "vite",
-    "mobile": "vite --host"
+    "mobile": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "sass": "^1.87.0",

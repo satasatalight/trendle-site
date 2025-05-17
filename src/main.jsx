@@ -31,7 +31,6 @@ function Main(){
         // fetch from server
         getData().then((response) => {
             console.log("Got data from: " + response.updateTime);
-            console.log(response);
 
             trendData.current = response.data;
             setDisplayData(shuffle(JSON.parse(JSON.stringify(response.data))));
@@ -46,7 +45,7 @@ function Main(){
         let allRight = true;
 
         for(let i = 0; i < displayData.length; i++){
-            if(displayData[i].value == trendData.current[i].value){
+            if(displayData[i].extracted_value == trendData.current[i].extracted_value){
                 // correct
                 displayData[i].editClassSuffix("disabled correct");
                 continue;
@@ -62,7 +61,7 @@ function Main(){
     // win
     function win(){
         displayData.forEach((element) => 
-            element.editSubtitle(element.formattedValue));
+            element.editSubtitle(element.value));
         confetti();
     }
 
@@ -73,10 +72,11 @@ function Main(){
             <p className="text-end col">{dateToString(updateTime)}</p>
         </h1>
         <hr/>
+        <p className="fw-medium">
+            Rank the following trending Google Search queries in order of largest increase in search volume (top) to smallest increase in search volume (bottom).
+        </p>
 
-        Rank the following trending Google Search queries in order of largest increase in search volume (top) to smallest increase in search volume (bottom).<br/>
-
-        <p className="my-4 alert alert-primary">
+        <p className="my-4 alert alert-primary" role="alert">
             Today's search data is from the week of: <b>{dateToString(curWeek.start)}</b> to <b>{dateToString(curWeek.end)}</b>.
         </p>
 
@@ -91,6 +91,11 @@ function Main(){
                 Submit!
             </button>
         </div>
+
+        <p className="fs-6 text-secondary">
+            Data is based on queries from the United States between 1/1/2004 and {dateToString(updateTime)}.<br/> 
+            New Games are collected around 12 AM EST.
+        </p>
     </div>;
 }
 
@@ -100,18 +105,18 @@ function List({data}){
         return <div/>
     
     return <>
-        {data.map((query) =>{
+        {data.map((object) =>{
             // create dynamic elements
             let [classSuffix, editClassSuffix] = useState("");
             let [subtitle, editSubtitle] = useState("");
 
             // attach dynamic edit function to object
-            query.editClassSuffix = editClassSuffix;
-            query.editSubtitle = editSubtitle;
+            object.editClassSuffix = editClassSuffix;
+            object.editSubtitle = editSubtitle;
 
             // return list object
-            return <li key={query.value.toString()} className={`list-group-item pt-3 pb-1 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
-                    {query.name}<br/>
+            return <li key={object.value.toString()} className={`list-group-item pt-3 pb-1 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
+                    {object.query}<br/>
                     <p className="fw-light fst-italic">{subtitle}</p>
             </li>
         }
@@ -156,7 +161,7 @@ async function getData() {
     let response;
 
     try {
-        response = await fetch("http://localhost:3000/api/getWeekData");
+        response = await fetch("https://trendle-server.vercel.app/api/getWeekData");
 
         if (!response) {
             console.error("trendle-server not working, trying again:");
