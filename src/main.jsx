@@ -66,7 +66,7 @@ function Main(){
     }
 
     // main jsx
-    return <div className="container mx-auto px-5 pt-4 fs-5" style={{width: 780}}>
+    return <div className="main container mx-auto px-5 pt-4" style={{width: "85vh"}}>
         <h1 className="row">
             <p className="text-start col">Trendle!</p>
             <p className="text-end col">{dateToString(updateTime)}</p>
@@ -115,9 +115,11 @@ function List({data}){
             object.editSubtitle = editSubtitle;
 
             // return list object
-            return <li key={object.value.toString()} className={`list-group-item pt-3 pb-1 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
-                    {object.query}<br/>
-                    <p className="fw-light fst-italic">{subtitle}</p>
+            return <li key={object.value.toString()} className={`list-group-item pt-4 pb-3 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
+                    <div className="row">
+                        <p className="text-start col-1 w-75">{object.query}</p>
+                        <p className="fw-light fst-italic text-end col-2 w-25">{subtitle}</p>
+                    </div>
             </li>
         }
     )}</>

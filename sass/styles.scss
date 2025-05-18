@@ -1,6 +1,13 @@
 // Import all of Bootstrap's CSS
 @import "bootstrap/scss/bootstrap";
 
+footer{
+    -webkit-text-size-adjust:100%;
+    -ms-text-size-adjust:100%;
+    -moz-text-size-adjust:100%;
+    text-size-adjust:100%;
+}
+
 .correct{
     animation-duration: 0.5s;
     animation-fill-mode: forwards;
@@ -51,4 +58,14 @@
 .hover {
     border-color: var(--bs-primary-border-subtle);
     background-color: var(--bs-primary-bg-subtle);
+}
+
+.main{
+    font-size: 2vh;
+}
+
+@media(max-aspect-ratio: 9/16){
+    .main{
+        font-size: 1.5vh;
+    }
 }
