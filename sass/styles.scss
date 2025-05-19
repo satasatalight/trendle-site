@@ -1,3 +1,9 @@
+// Update the import directory to point to it‘s location within node_modules
+$bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
+
+// Import the Sass files as usual
+@import "bootstrap-icons/font/bootstrap-icons";
+
 // Import all of Bootstrap's CSS
 @import "bootstrap/scss/bootstrap";
 
@@ -55,6 +61,11 @@ footer{
     100% { transform: translateX(0) }
 }
 
+li:hover{
+    border-color: var(--bs-primary-border-subtle);
+    background-color: var(--bs-primary-bg-subtle);
+}
+
 .hover {
     border-color: var(--bs-primary-border-subtle);
     background-color: var(--bs-primary-bg-subtle);
@@ -68,4 +79,14 @@ footer{
     .main{
         font-size: 1.5vh;
     }
+}
+
+.shareable{
+    overflow: hidden;
+    animation: 1s forwards cropIn;
+}
+
+@keyframes cropIn {
+    from {max-height: 0px;}
+    to {max-height: 600px;}
 }

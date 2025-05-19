@@ -14,12 +14,20 @@ root.render(<Main/>);
 function Main(){
     let trendData = useRef(null);
     let sortableRef = useRef(null);
+    let [attempts, setAttempts] = useState(0);
+    let [shareable, setShareable] = useState(["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]);
+    let [shareableSuffix, setShareableSuffix] = useState("d-none");
+    let [copyIcon, setCopyIcon] = useState("bi-copy");
+    let [themeIcon, setThemeIcon] = useState("");
     let [displayData, setDisplayData] = useState(null);
     let [curWeek, setCurWeek] = useState({start: null, end: null});
     let [updateTime, setUpdateTime] = useState(new Date());
 
     // init
     useEffect(() => {
+        // set page color scheme based on user's default theme
+        setDefaultTheme(setThemeIcon);
+
         // setup sortable + swap plugin
         Sortable.create(sortableRef.current, {
             swap: true,
@@ -38,21 +46,25 @@ function Main(){
             setUpdateTime(new Date(response.updateTime));
         });
 
-    }, [setCurWeek, setUpdateTime, setDisplayData]);
+    }, [setCurWeek, setUpdateTime, setDisplayData, setThemeIcon]);
 
     // check completion
     function submit(){
         let allRight = true;
+        setAttempts((prev) => ++prev);
 
         for(let i = 0; i < displayData.length; i++){
             if(displayData[i].extracted_value == trendData.current[i].extracted_value){
                 // correct
                 displayData[i].editClassSuffix("disabled correct");
-                continue;
+                updateShareable("🟩", i);
             }
-            // wrong
-            displayData[i].editClassSuffix("wrong");
-            allRight = false;
+            else {
+                // wrong
+                displayData[i].editClassSuffix("wrong");
+                updateShareable("🟥", i);
+                allRight = false;
+            }
         }
 
         if(allRight) win();
@@ -60,18 +72,35 @@ function Main(){
 
     // win
     function win(){
+        setShareableSuffix("shareable");
         displayData.forEach((element) => 
             element.editSubtitle(element.value));
         confetti();
     }
 
+    // add emoji to row i
+    function updateShareable(emoji, i){
+        setShareable((prev) => {
+            let array = [...prev];
+            array[i] += emoji;
+            return array;
+        });
+    }
+
     // main jsx
     return <div className="main container mx-auto px-5 pt-4" style={{width: "85vh"}}>
-        <h1 className="row">
-            <p className="text-start col">Trendle!</p>
-            <p className="text-end col">{dateToString(updateTime)}</p>
+        <h1 className="row align-items-center">
+            <p className="text-start col-7">Trendle!</p>
+
+            <div className="col-auto mb-auto text-end ms-auto">
+                <button type="button" className="btn btn-secondary rounded-circle me-3" onClick={() => switchTheme(setThemeIcon)}>
+                    <i className={`bi ${themeIcon}`}/>
+                </button>
+                {dateToString(updateTime)}
+            </div>
         </h1>
         <hr/>
+
         <p className="fw-medium">
             Rank the following trending Google Search queries in order of largest increase in search volume (top) to smallest increase in search volume (bottom).
         </p>
@@ -96,6 +125,17 @@ function Main(){
             Data is based on queries from the United States between 1/1/2004 and {dateToString(updateTime)}.<br/> 
             New Games are collected around 12 AM EST.
         </p>
+
+        <div className={`rounded bg-secondary-subtle px-3 py-3 my-3 mx-5 text-center ${shareableSuffix}`}>
+            You got it in {attempts} tries!<br/>
+            
+            {shareable.map((line, i) => 
+                <div key={i}>{line}<br/></div>)}
+
+            <button className="btn btn-outline-info mt-3 px-3" onClick={() => copyShareable(shareable, setCopyIcon)}>
+                Copy <i className={`bi ${copyIcon} ms-1`}/>
+            </button>
+        </div>
     </div>;
 }
 
@@ -115,7 +155,7 @@ function List({data}){
             object.editSubtitle = editSubtitle;
 
             // return list object
-            return <li key={object.value.toString()} className={`list-group-item pt-4 pb-3 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
+            return <li key={object.query} className={`list-group-item pt-4 pb-3 my-1 rounded border-2 fw-semibold ${classSuffix}`} style={{fontSize: "2vh"}} onAnimationEnd={() => {if(classSuffix != "disabled correct") editClassSuffix("")}}>
                     <div className="row">
                         <p className="text-start col-1 w-75">{object.query}</p>
                         <p className="fw-light fst-italic text-end col-2 w-25">{subtitle}</p>
@@ -140,7 +180,7 @@ function onListUpdate(evt, setArray){
     });
 }
 
-// shuffle inital array
+// shuffle initial array
 function shuffle(array) {
     let shuffledArray = [];
 
@@ -151,6 +191,32 @@ function shuffle(array) {
     }
 
     return shuffledArray
+}
+
+// copy shareable to clipboard
+function copyShareable(shareable, setIcon){
+    let copy = "";
+    shareable.forEach((line) => 
+        copy += `${line}\n`);
+    copy.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copy);
+
+    setIcon("bi-clipboard-check");
+    setTimeout(() => setIcon("bi-copy"), 500);
+}
+
+// get default color scheme of user's device
+function setDefaultTheme(setIcon){
+    let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+    setIcon(isDark ? 'bi-sun-fill' : 'bi-moon-stars-fill');
+}
+
+// switch color scheme
+function switchTheme(setIcon){
+    let isLight = (document.documentElement.getAttribute('data-bs-theme') == "light");
+    document.documentElement.setAttribute('data-bs-theme', isLight ? 'dark' : 'light');
+    setIcon(isLight ? 'bi-sun-fill' : 'bi-moon-stars-fill');
 }
 
 // convert date object to calendar string
@@ -166,16 +232,16 @@ async function getData() {
         response = await fetch("https://trendle-server.vercel.app/api/getWeekData");
 
         if (!response) {
-            console.error("trendle-server not working, trying again:");
+            console.error("server response:");
             console.error(response);
-            // return await getData();
+            alert("Couldn't reach server! Check console for details. Try refreshing (:");
         }
     }
 
     catch {
-        console.error("trendle-server not working, trying again:");
+        console.error("server response:");
         console.error(response);
-        // return await getData();  
+        alert("Couldn't reach server! Check console for details. Try refreshing (:");
     }
 
     return await response.json();
