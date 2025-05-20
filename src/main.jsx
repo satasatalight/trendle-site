@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
+import GoogleTrends from "./GoogleTrends.jsx";
 import { Sortable, Swap } from "sortablejs";
 import confetti from "canvas-confetti";
 import '../sass/styles.scss';
@@ -14,9 +15,10 @@ root.render(<Main/>);
 function Main(){
     let trendData = useRef(null);
     let sortableRef = useRef(null);
-    let [attempts, setAttempts] = useState(0);
     let [shareable, setShareable] = useState(["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]);
     let [shareableSuffix, setShareableSuffix] = useState("d-none");
+    let [googleData, setGoogleData] = useState([]);
+    let [attempts, setAttempts] = useState(0);
     let [copyIcon, setCopyIcon] = useState("bi-copy");
     let [themeIcon, setThemeIcon] = useState("");
     let [displayData, setDisplayData] = useState(null);
@@ -44,9 +46,13 @@ function Main(){
             setDisplayData(shuffle(JSON.parse(JSON.stringify(response.data))));
             setCurWeek({start: new Date(response.week.start), end: new Date(response.week.end)});
             setUpdateTime(new Date(response.updateTime));
-        });
 
-    }, [setCurWeek, setUpdateTime, setDisplayData, setThemeIcon]);
+            // setup google widget queries
+            trendData.current.forEach((element) => 
+                setGoogleData((prev) => [...prev, element.query]));
+        });
+        
+    }, [setCurWeek, setUpdateTime, setDisplayData, setThemeIcon, setGoogleData]);
 
     // check completion
     function submit(){
@@ -126,7 +132,7 @@ function Main(){
             New Games are collected around 12 AM EST.
         </p>
 
-        <div className={`rounded bg-secondary-subtle px-3 py-3 my-3 mx-5 text-center ${shareableSuffix}`}>
+        <div className={`rounded bg-secondary-subtle px-3 pt-3 my-3 mx-5 text-center ${shareableSuffix}`} onAnimationEnd={() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})}>
             You got it in {attempts} tries!<br/>
             
             {shareable.map((line, i) => 
@@ -135,6 +141,11 @@ function Main(){
             <button className="btn btn-outline-info mt-3 px-3" onClick={() => copyShareable(shareable, setCopyIcon)}>
                 Copy <i className={`bi ${copyIcon} ms-1`}/>
             </button>
+            <hr/>
+
+            <div className="mb-3 mx-3 rounded">
+                <GoogleTrends type="TIMESERIES" keywords={googleData} start={curWeek.start} end={curWeek.end} url="https://ssl.gstatic.com/trends_nrtr/2051_RC11/embed_loader.js"/>
+            </div>
         </div>
     </div>;
 }
@@ -198,7 +209,6 @@ function copyShareable(shareable, setIcon){
     let copy = "";
     shareable.forEach((line) => 
         copy += `${line}\n`);
-    copy.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(copy);
 
     setIcon("bi-clipboard-check");
