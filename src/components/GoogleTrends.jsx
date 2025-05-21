@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 import Script from "react-load-script"
 
 export default function GoogleTrends({ type, keywords, url, start, end }) {
-  if(!start || !end || !keywords) return;
+  if(!start || !end || keywords.length == 0) return;
 
   let ref = useRef(null);
   let comparisonItem = [];
@@ -24,7 +24,7 @@ export default function GoogleTrends({ type, keywords, url, start, end }) {
       ref.current,
       type,
       {
-        comparisonItem,
+        comparisonItem: comparisonItem,
         category: 0,
         property: ""
       },
